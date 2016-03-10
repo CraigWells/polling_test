@@ -33,50 +33,62 @@
 (function(angular) {
     'use strict';
     var beanApp = angular.module('beanApp', [])
-    .controller('MainCtrl', ['$scope', function($scope) {}]);
+
+    .controller('MainCtrl', ['$scope', function($scope) {}])
+
+    .controller('graphCtrl', ['$scope', 'graphRenderer', 'graphData', function($scope, graphRenderer, graphData) {
+        $scope.active = false;
+        $scope.animate = function(){
+            $scope.active = true;
+            graphRenderer.init(graphData);
+        }
+        $scope.stop = function(){
+            $scope.active = true;
+            graphRenderer.init(graphData);
+        }
+    }]);
 
     beanApp.factory('graphData', function(){
-
+        // just returns a static array of integers 
+        var data = [20, 30, 50, 46, 36, 20, 21, 35, 67, 89, 90, 26, 78, 46];
+        
         function init(){
-            var data = {};
             return data;
         };       
-
         return init();
     });
 
     beanApp.factory('graphRenderer', function(){
-        
+
         var requestAnimationFrame = window.requestAnimationFrame;
         var canvas, context, lineDefaults;
 
-        function init() {
+        function init(data) {
+            console.log(data);
             canvas = document.getElementById("mycanvas");
             context = canvas.getContext("2d");
             canvas.width = 1000;
             canvas.height = 500;
             lineDefaults = {
-
                 startPos: {
                     x: 1000,
                     y: 300
                 },
-
                 endPos: {
                     x: 900,
                     y: 100
                 },
-
                 count:0,
                 end:900
             }
+            Animate();
         }
 
         function clear() {
             context.clearRect(0, 0, canvas.width, canvas.height);
         }
 
-        function Animate(graphData){
+        function Animate(){
             if (lineDefaults.count < lineDefaults.end) {
                 requestAnimationFrame(function () {
                     clear();
@@ -86,7 +98,6 @@
                     Animate();
                 });
             }
-            console.log("Animate");
         };
 
         function updatePositions(){
@@ -102,24 +113,16 @@
             context.closePath();
         }
 
-        return function(a){
-            init();
-            return Animate;
+        return {
+            init: init
         };
     });    
-
-    beanApp.directive('graph', ['graphData', '$timeout', 'graphRenderer', function(graphData, $timeout, graphRenderer) {
+ 
+    beanApp.directive('graph', function() {      
         return {
             restrict: 'E',
-            templateUrl: 'views/canvas.html',
-            link: function(scope, element) {
-                //scope.graphs = graphData;
-                $timeout(function () {
-                   var anaimate = graphRenderer(element); 
-                   animate();
-                });
-            }
+            templateUrl: 'views/canvas.html'
         }
-    }]);
+    });
 
 })(window.angular);

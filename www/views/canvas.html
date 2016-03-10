@@ -1,3 +1,5 @@
-﻿<div class="col-md-2 graph-container">
+﻿<div class="col-md-2 graph-container" ng-controller="graphCtrl">
 	 <canvas id="mycanvas" height="500" width="1000" style="border:1px solid"></canvas>
+	 <button ng-if="!active" ng-click="animate();">Animate</button>
+	 <button ng-if="active">Stop</button>
 </div>
