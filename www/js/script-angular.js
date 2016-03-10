@@ -3,7 +3,7 @@
  
 // requestAnimationFrame polyfill by Erik Möller
 // fixes from Paul Irish and Tino Zijdel
- 
+
 (function() {
     var lastTime = 0;
     var vendors = ['ms', 'moz', 'webkit', 'o'];
@@ -46,30 +46,30 @@
     });
 
     beanApp.factory('graphRenderer', function(){
-
-        //gloabl definitions
-        // var requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+        
         var requestAnimationFrame = window.requestAnimationFrame;
-        var canvas = document.getElementById('mycanvas');
-        var context = canvas.getContext('2d');
+        var canvas, context, lineDefaults;
 
-        canvas.width = 1000;
-        canvas.height = 500;
+        function init() {
+            canvas = document.getElementById("mycanvas");
+            context = canvas.getContext("2d");
+            canvas.width = 1000;
+            canvas.height = 500;
+            lineDefaults = {
 
-        var lineDefaults = {
+                startPos: {
+                    x: 1000,
+                    y: 300
+                },
 
-            startPos: {
-                x: 1000,
-                y: 300
-            },
+                endPos: {
+                    x: 900,
+                    y: 100
+                },
 
-            endPos: {
-                x: 900,
-                y: 100
-            },
-
-            count:0,
-            end:900
+                count:0,
+                end:900
+            }
         }
 
         function clear() {
@@ -86,6 +86,7 @@
                     Animate();
                 });
             }
+            console.log("Animate");
         };
 
         function updatePositions(){
@@ -101,8 +102,9 @@
             context.closePath();
         }
 
-        return function(graphData){
-            Animate(graphData);
+        return function(a){
+            init();
+            return Animate;
         };
     });    
 
@@ -111,9 +113,10 @@
             restrict: 'E',
             templateUrl: 'views/canvas.html',
             link: function(scope, element) {
-                scope.graphs = graphData;
+                //scope.graphs = graphData;
                 $timeout(function () {
-                    graphRenderer(graphData); 
+                   var anaimate = graphRenderer(element); 
+                   animate();
                 });
             }
         }
