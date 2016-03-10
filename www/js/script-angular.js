@@ -37,24 +37,27 @@
     .controller('MainCtrl', ['$scope', function($scope) {}])
 
     .controller('graphCtrl', ['$scope', 'graphRenderer', 'graphData', function($scope, graphRenderer, graphData) {
-        graphRenderer.init();
+        graphRenderer.init(graphData);
         $scope.graph = graphRenderer;
-/*
-        $scope.active = graphRenderer.isActive;
-        $scope.animate = graphRenderer.start;
-        $scope.stop = graphRenderer.stop;
-        $scope.reset = graphRenderer.reset;
-        
-        */
-
     }]);
 
     beanApp.factory('graphData', function(){
         // just returns a static array of integers 
+        var count = 0;
         var data = [20, 30, 50, 46, 36, 20, 21, 35, 67, 89, 90, 26, 78, 46];
 
+        function getData(){
+            if(count > 0){
+                data.push(data[0]+2);
+            }
+            count++;
+            console.log(data);
+        }
+
         function init(){
-            return data;
+            return {
+                getData : getData
+            };
         };       
         return init();
     });
@@ -62,14 +65,23 @@
     beanApp.factory('graphRenderer', function(){
 
         var requestAnimationFrame = window.requestAnimationFrame;
-        var canvas, context, lineDefaults, active = false;
+        var canvas, context, lineDefaults, active = false, dataObject;
 
-        function init() {
+        function init(graphData) {
+            dataObject = graphData;
+            setCanvas();
+            lineDefaults = getDefaults();
+        }
+
+        function setCanvas(){
             canvas = document.getElementById("mycanvas");
             context = canvas.getContext("2d");
             canvas.width = 1000;
             canvas.height = 500;
-            lineDefaults = {
+        }
+
+        function getDefaults(){
+            return {
                 startPos: {
                     x: 1000,
                     y: 300
@@ -81,13 +93,14 @@
                 count:0,
                 end:900
             }
-        }
+        };
 
         function clear() {
             context.clearRect(0, 0, canvas.width, canvas.height);
         }
 
         function Animate(){
+            dataObject.getData();
             if ((lineDefaults.count < lineDefaults.end) && active) {
                 requestAnimationFrame(function () {
                     clear();
@@ -120,7 +133,8 @@
             Animate();
         }
         function reset(){
-            init();
+            setCanvas();
+            lineDefaults = getDefaults();
         }
         function isActive(){
             return active;
