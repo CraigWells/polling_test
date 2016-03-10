@@ -37,21 +37,22 @@
     .controller('MainCtrl', ['$scope', function($scope) {}])
 
     .controller('graphCtrl', ['$scope', 'graphRenderer', 'graphData', function($scope, graphRenderer, graphData) {
-        $scope.active = false;
-        $scope.animate = function(){
-            $scope.active = true;
-            graphRenderer.init(graphData);
-        }
-        $scope.stop = function(){
-            $scope.active = true;
-            graphRenderer.init(graphData);
-        }
+        graphRenderer.init();
+        $scope.graph = graphRenderer;
+/*
+        $scope.active = graphRenderer.isActive;
+        $scope.animate = graphRenderer.start;
+        $scope.stop = graphRenderer.stop;
+        $scope.reset = graphRenderer.reset;
+        
+        */
+
     }]);
 
     beanApp.factory('graphData', function(){
         // just returns a static array of integers 
         var data = [20, 30, 50, 46, 36, 20, 21, 35, 67, 89, 90, 26, 78, 46];
-        
+
         function init(){
             return data;
         };       
@@ -61,10 +62,9 @@
     beanApp.factory('graphRenderer', function(){
 
         var requestAnimationFrame = window.requestAnimationFrame;
-        var canvas, context, lineDefaults;
+        var canvas, context, lineDefaults, active = false;
 
-        function init(data) {
-            console.log(data);
+        function init() {
             canvas = document.getElementById("mycanvas");
             context = canvas.getContext("2d");
             canvas.width = 1000;
@@ -81,7 +81,6 @@
                 count:0,
                 end:900
             }
-            Animate();
         }
 
         function clear() {
@@ -89,7 +88,7 @@
         }
 
         function Animate(){
-            if (lineDefaults.count < lineDefaults.end) {
+            if ((lineDefaults.count < lineDefaults.end) && active) {
                 requestAnimationFrame(function () {
                     clear();
                     drawline();
@@ -113,8 +112,26 @@
             context.closePath();
         }
 
+        function stop(){
+            active = false;
+        }
+        function start(){
+            active = true;
+            Animate();
+        }
+        function reset(){
+            init();
+        }
+        function isActive(){
+            return active;
+        }
+
         return {
-            init: init
+            init: init,
+            stop: stop,
+            start: start,
+            reset: reset,
+            isActive: isActive
         };
     });    
  
