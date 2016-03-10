@@ -46,18 +46,15 @@
         var count = 0;
         var data = [20, 30, 50, 46, 36, 20, 21, 35, 67, 89, 90, 26, 78, 46];
 
-        function getData(){
-            if(count > 0){
-                data.push(data[0]+2);
-            }
-            count++;
-            console.log(data);
-        }
-
         function init(){
-            return {
-                getData : getData
-            };
+
+            return function(){
+                if(count > 0){
+                    data.push(data[0]+2);
+                }
+                count++;
+                console.log(data);
+            }
         };       
         return init();
     });
@@ -67,18 +64,12 @@
         var requestAnimationFrame = window.requestAnimationFrame;
         var canvas, context, lineDefaults, active = false, dataObject;
 
-        function init(graphData) {
-            dataObject = graphData;
-            setCanvas();
-            lineDefaults = getDefaults();
-        }
-
         function setCanvas(){
             canvas = document.getElementById("mycanvas");
             context = canvas.getContext("2d");
             canvas.width = 1000;
             canvas.height = 500;
-        }
+        };
 
         function getDefaults(){
             return {
@@ -97,10 +88,10 @@
 
         function clear() {
             context.clearRect(0, 0, canvas.width, canvas.height);
-        }
+        };
 
         function Animate(){
-            dataObject.getData();
+            dataObject();
             if ((lineDefaults.count < lineDefaults.end) && active) {
                 requestAnimationFrame(function () {
                     clear();
@@ -115,7 +106,7 @@
         function updatePositions(){
             lineDefaults.startPos.x -= 1;
             lineDefaults.endPos.x -= 1;
-        }
+        };
 
         function drawline(){
             context.beginPath();
@@ -123,29 +114,29 @@
             context.lineTo(lineDefaults.endPos.x, lineDefaults.endPos.y);
             context.stroke();
             context.closePath();
-        }
+        };
 
-        function stop(){
-            active = false;
-        }
-        function start(){
-            active = true;
-            Animate();
-        }
-        function reset(){
-            setCanvas();
-            lineDefaults = getDefaults();
-        }
-        function isActive(){
-            return active;
-        }
-
+        // Define the exposed interfaces
         return {
-            init: init,
-            stop: stop,
-            start: start,
-            reset: reset,
-            isActive: isActive
+            init: function(graphData) {
+                dataObject = graphData;
+                setCanvas();
+                lineDefaults = getDefaults();
+            },
+            stop: function(){
+                active = false;
+            },
+            start: function(){
+                active = true;
+                Animate();
+            },
+            reset: function(){
+                setCanvas();
+                lineDefaults = getDefaults();
+            },
+            isActive: function(){
+                return active;
+            }
         };
     });    
  
