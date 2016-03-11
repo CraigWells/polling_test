@@ -60,20 +60,26 @@
             return Math.floor(Math.random() * (max - min + 1)) + min;
         };
 
-        function init(){
+        function getData(){
+            var randomInterval = getRandomInt(settings.poleMin, settings.poleMax);
+            var randomValue = getRandomInt(settings.rangeMin, settings.rangeMax);
 
-            return function(){
-                var randomInterval = getRandomInt(settings.poleMin, settings.poleMax);
-                var randomValue = getRandomInt(settings.rangeMin, settings.rangeMax);
-
-                if(count > 0){
-                    data.push(randomValue);
-                    data.shift();
-                }
-                count++;
-                console.log("Array : "+data);
-                console.log("interval : "+randomInterval);
+            if(count > 0){
+                data.push(randomValue);
+                data.shift();
             }
+            count++;
+            console.log("Array : "+data);
+            console.log("interval : "+randomInterval);
+            return data;
+        };
+
+        function init(){
+            return {
+                getData : function(){
+                    return getData();
+                }
+            };
         };       
         return init();
     });
@@ -110,7 +116,7 @@
         };
 
         function Animate(){
-            dataObject();
+            console.log(dataObject.getData());
             if ((lineDefaults.count < lineDefaults.end) && active) {
                 requestAnimationFrame(function () {
                     clear();
