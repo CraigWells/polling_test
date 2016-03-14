@@ -42,35 +42,33 @@
     }]);
 
     beanApp.factory('graphData', function(){
-        // just returns a static array of integers 
-        var count = 0,
+        var currentInterval = 0,
+        randomInterval = 0,
+        randomValue,
         settings = {
-            poleMin: 1,
-            poleMax: 30,
+            poleMin: 60,
+            poleMax: 240,
             rangeMin: 1,
             rangeMax: 200
         };
         var data = [20, 30, 50, 46, 36, 20, 21, 35, 67, 89, 90, 26, 78, 46];
 
         function getRandomInt(min, max) {
-        /**
-         * Returns a random integer between min (inclusive) and max (inclusive)
-         * Using Math.round() will give you a non-uniform distribution!
-         */
             return Math.floor(Math.random() * (max - min + 1)) + min;
         };
 
         function getData(){
-            var randomInterval = getRandomInt(settings.poleMin, settings.poleMax);
-            var randomValue = getRandomInt(settings.rangeMin, settings.rangeMax);
-
-            if(count > 0){
+            if(currentInterval == randomInterval){
+                randomInterval = getRandomInt(settings.poleMin, settings.poleMax);
+                randomValue = getRandomInt(settings.rangeMin, settings.rangeMax);
                 data.push(randomValue);
                 data.shift();
+                currentInterval = 0;
+                console.log("Array : "+data);
+                console.log("interval : "+randomInterval);
+            }else{
+               currentInterval++; 
             }
-            count++;
-            console.log("Array : "+data);
-            console.log("interval : "+randomInterval);
             return data;
         };
 
@@ -116,7 +114,7 @@
         };
 
         function Animate(){
-            console.log(dataObject.getData());
+            dataObject.getData();
             if ((lineDefaults.count < lineDefaults.end) && active) {
                 requestAnimationFrame(function () {
                     clear();
