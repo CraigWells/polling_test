@@ -1,34 +1,11 @@
-﻿// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
-// http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
- 
-// requestAnimationFrame polyfill by Erik Möller
-// fixes from Paul Irish and Tino Zijdel
-
-(function() {
-    var lastTime = 0;
-    var vendors = ['ms', 'moz', 'webkit', 'o'];
-    for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-        window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame'];
-        window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame']
-                                   || window[vendors[x]+'CancelRequestAnimationFrame'];
-    }
- 
-    if (!window.requestAnimationFrame)
-        window.requestAnimationFrame = function(callback, element) {
-            var currTime = new Date().getTime();
-            var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-            var id = window.setTimeout(function() { callback(currTime + timeToCall); },
-              timeToCall);
-            lastTime = currTime + timeToCall;
-            return id;
-        };
- 
-    if (!window.cancelAnimationFrame)
-        window.cancelAnimationFrame = function(id) {
-            clearTimeout(id);
-        };
-}());
-
+﻿/*
+    Outstanding: 
+    
+    - Make responsive, get window dimensions to set canvas on init
+    - Provide smooth transition on new data entering the graph
+    - Prettify the dom with CSS and nice buttons.
+    - Expose and position the stats as the graph updates.
+*/
 
 (function(angular) {
     'use strict';
@@ -36,11 +13,22 @@
 
     .controller('MainCtrl', ['$scope', function($scope) {}])
 
+    /* 
+        graphCtrl, keep it slim! 
+    */
     .controller('graphCtrl', ['$scope', 'graphRenderer', 'graphData', function($scope, graphRenderer, graphData) {
         graphRenderer.init(graphData);
         $scope.graph = graphRenderer;
     }]);
 
+    /* 
+        graphData acts as a real-time data feed, it returns a predefined array, 
+        that appends a new random value (within a fixed range) at a random 
+        interval (within a fixed range) while maintaining the original length.
+
+        In a live system, this factory would poll an API at a set interval.
+
+    */
     beanApp.factory('graphData', function(){
         var currentInterval = 0,
         randomInterval = 0,
@@ -64,8 +52,6 @@
                 data.push(randomValue);
                 data.shift();
                 currentInterval = 0;
-                console.log("Array : "+data);
-                console.log("interval : "+randomInterval);
             }else{
                currentInterval++; 
             }
@@ -82,10 +68,16 @@
         return init();
     });
 
+    /*
+        graphRenderer provides an interface for the graph directive to action 
+        graph functions. It handles the logic for manipulating the canvas, 
+        maintains its own state, calculates position values, plots and updates
+        the canvas with the graph data within an (requestAnimationFrame) animation loop. 
+    */
     beanApp.factory('graphRenderer', function(){
 
-        var requestAnimationFrame = window.requestAnimationFrame;
-        var canvas, context, lineDefaults, active = false, dataObject;
+        var requestAnimationFrame = window.requestAnimationFrame,
+            canvas, context, active = false, dataObject;
 
         function setCanvas(){
             canvas = document.getElementById("mycanvas");
@@ -94,57 +86,77 @@
             canvas.height = 500;
         };
 
-        function getDefaults(){
-            return {
-                startPos: {
-                    x: 1000,
-                    y: 300
-                },
-                endPos: {
-                    x: 900,
-                    y: 100
-                },
-                count:0,
-                end:900
-            }
-        };
-
         function clear() {
             context.clearRect(0, 0, canvas.width, canvas.height);
         };
 
         function Animate(){
-            dataObject.getData();
-            if ((lineDefaults.count < lineDefaults.end) && active) {
+            if (active) {    
                 requestAnimationFrame(function () {
                     clear();
-                    drawline();
-                    updatePositions();
-                    lineDefaults.count++;
+                    drawGraph(dataObject.getData());
                     Animate();
                 });
             }
         };
 
-        function updatePositions(){
-            lineDefaults.startPos.x -= 1;
-            lineDefaults.endPos.x -= 1;
-        };
-
-        function drawline(){
+        function drawGraph(data){
+            var points = getPoints(data);
+            var len = points.x.length;
             context.beginPath();
-            context.moveTo(lineDefaults.startPos.x, lineDefaults.startPos.y);
-            context.lineTo(lineDefaults.endPos.x, lineDefaults.endPos.y);
-            context.stroke();
-            context.closePath();
+            for(var i = 0; i < len; i++){
+                context.lineTo(points.x[i], points.y[i]);
+            }
+            //context.strokeStyle="red";
+            context.stroke();            
         };
 
-        // Define the exposed interfaces
+        /* 
+            interpolate the graph data against the canvas dimensions, 
+            within the range defined by the lowest and highest values 
+            in the graph data array, and return corresponding x / y 
+            position values. 
+        */    
+        function getPoints(data){
+            var x = [],
+                y = [],
+                count = 0,
+                len = data.length,
+                lowest = getLowestValue(data),
+                rangeY = getHeighestValue(data) - lowest,
+                rangeX = len-1,
+                incrementY = canvas.height / rangeY,
+                incrementX = Math.floor(canvas.width / rangeX);
+            for(var i=0; i<len;i++){
+                y.push(canvas.height - (data[i] - lowest) * incrementY);
+            }   
+            x.push(count);
+            for(var i = 0; i < rangeX; i++){
+                count += incrementX;
+                x.push(count);
+            };
+            return {
+                x : x,
+                y : y
+            }
+        };
+
+        function getHeighestValue(values){
+            return Math.max.apply(null, values);
+        };
+
+        function getLowestValue(values){
+            return Math.min.apply(null, values);
+        };
+
+        /* 
+            The functions returned provide an interface 
+            for the graph directive.
+        */
         return {
             init: function(graphData) {
                 dataObject = graphData;
                 setCanvas();
-                lineDefaults = getDefaults();
             },
             stop: function(){
                 active = false;
@@ -155,7 +167,6 @@
             },
             reset: function(){
                 setCanvas();
-                lineDefaults = getDefaults();
             },
             isActive: function(){
                 return active;
@@ -163,6 +174,7 @@
         };
     });    
  
+    /* Declare the graph directive as Element type */
     beanApp.directive('graph', function() {      
         return {
             restrict: 'E',
