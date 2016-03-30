@@ -1,10 +1,10 @@
-// modules =================================================
+﻿// modules =================================================
 var express        = require('express');
 var app            = express();
 // configuration ===========================================
 
 // set our port
-var port = process.env.PORT || 8080; 
+var port = process.env.PORT || 8081; 
 
 // set the static files location /public/img will be /img for users
 app.use(express.static(__dirname + '/www')); 

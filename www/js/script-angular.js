@@ -77,13 +77,14 @@
     beanApp.factory('graphRenderer', function(){
 
         var requestAnimationFrame = window.requestAnimationFrame,
-            canvas, context, active = false, dataObject;
+            canvas, context, active = false, dataObject, graphContainer;
 
         function setCanvas(){
             canvas = document.getElementById("mycanvas");
             context = canvas.getContext("2d");
-            canvas.width = 1000;
-            canvas.height = 500;
+            graphContainer = document.getElementById("graph-container");
+            canvas.width = graphContainer.clientWidth;
+            canvas.height = graphContainer.clientHeight;
         };
 
         function clear() {
