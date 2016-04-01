@@ -16,9 +16,28 @@
     /* 
         graphCtrl, keep it slim! 
     */
-    .controller('graphCtrl', ['$scope', 'graphRenderer', 'graphData', function($scope, graphRenderer, graphData) {
+    .controller('graphCtrl', ['$scope', 'graphRenderer', 'graphData', '$window', function($scope, graphRenderer, graphData, $window) {
         graphRenderer.init(graphData);
         $scope.graph = graphRenderer;
+
+        var canvas = angular.element(document.querySelector('canvas'));
+        var canvasDimensions = {};
+        $scope.w = angular.element($window);
+        $scope.$watch(
+            function () {
+                canvasDimensions = {
+                    width : canvas[0].width,
+                    height : canvas[0].height
+                }
+                $scope.canvasDimensions = canvasDimensions;
+                console.log($scope.canvasDimensions);
+            }
+        );
+        $scope.w.bind('resize', function(){
+            $scope.$apply();
+            $scope.$digest();
+        });
+        
     }]);
 
     /* 
