@@ -12,7 +12,6 @@
     var beanApp = angular.module('beanApp', [])
 
     .controller('MainCtrl', ['$scope', function($scope) {}])
-
     /* 
         graphCtrl, keep it slim! 
     */
@@ -20,17 +19,29 @@
         graphRenderer.init(graphData);
         $scope.graph = graphRenderer;
 
-        var canvas = angular.element(document.querySelector('canvas'));
-        var canvasDimensions = {};
+        var graphContainer = angular.element(document.querySelector('#graph-container'));
         $scope.w = angular.element($window);
         $scope.$watch(
             function () {
-                canvasDimensions = {
-                    width : canvas[0].width,
-                    height : canvas[0].height
-                }
-                $scope.canvasDimensions = canvasDimensions;
-                console.log($scope.canvasDimensions);
+            	/*
+            	var width = graphContainer[0].offsetWidth;
+            	var height = graphContainer[0].offsetHeight; */
+            	/*
+            	if(width < height){
+            		console.log("width is less than height");
+            		height = (width / 100) * 60;
+            		console.log(height);
+            	}else{
+            		console.log("width more or equal to height");
+            		height = 500;
+            		console.log(height);
+            	};*/
+            	/*
+            	graphRenderer.updateGraph({
+            		'height' : height,
+            		'width' : width
+            	});*/
+            	
             }
         );
         $scope.w.bind('resize', function(){
@@ -39,7 +50,6 @@
         });
         
     }]);
-
     /* 
         graphData acts as a real-time data feed, it returns a predefined array, 
         that appends a new random value (within a fixed range) at a random 
@@ -101,9 +111,12 @@
         function setCanvas(){
             canvas = document.getElementById("mycanvas");
             context = canvas.getContext("2d");
-            graphContainer = document.getElementById("graph-container");
-            canvas.width = graphContainer.clientWidth;
-            canvas.height = graphContainer.clientHeight;
+            /*graphContainer = document.getElementById("graph-container");*/
+            var graphContainer = angular.element(document.querySelector('#graph-container'));
+            canvas.width = graphContainer[0].offsetWidth;
+            canvas.height = graphContainer[0].offsetHeight;
+            //canvas.width = graphContainer.clientWidth;
+            //canvas.height = graphContainer.clientHeight;*/
         };
 
         function clear() {
@@ -169,6 +182,11 @@
             return Math.min.apply(null, values);
         };
 
+        function updateGraphDimensions(newDimensions){
+        	canvas.height = newDimensions.height;
+        	canvas.width = newDimensions.width;
+        };
+
         /* 
             The functions returned provide an interface 
             for the graph directive.
@@ -190,6 +208,9 @@
             },
             isActive: function(){
                 return active;
+            },
+            updateGraph: function(newDimensions){
+            	updateGraphDimensions(newDimensions);
             }
         };
     });    

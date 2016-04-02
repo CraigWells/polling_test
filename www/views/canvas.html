@@ -1,5 +1,5 @@
 ﻿<div ng-controller="graphCtrl" id="graph-container">
-	 <canvas id="mycanvas" height="500" width="1000" style="border:1px solid"></canvas>
+	 <canvas id="mycanvas" style="border:1px solid"></canvas>
 	 <button ng-if="!graph.isActive()" ng-click="graph.start();">Animate</button>
 	 <button ng-if="!graph.isActive()" ng-click="graph.reset();">Reset</button>
 	 <button ng-if="graph.isActive()" ng-click="graph.stop();">Stop</button>
