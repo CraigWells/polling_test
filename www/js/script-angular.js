@@ -1,6 +1,10 @@
 ﻿/*
     Outstanding: 
 
+	- Render graph with default values on load
+
+	- Randomise default data set
+
     - Provide smooth transition on new data entering the graph
 
     - Expose and position the stats as the graph updates:
@@ -44,6 +48,10 @@
         };
         var data = [20, 30, 50, 46, 36, 20, 21, 35, 67, 89, 90, 26, 78, 46];
 
+        function createRandomArray(){
+
+        };
+
         function getRandomInt(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
         };
@@ -82,10 +90,11 @@
         var requestAnimationFrame = window.requestAnimationFrame,
             canvas, context, active = false, dataObject, graphContainer;
 
-        function setCanvas(){
+        function setCanvas(data){
             canvas = document.getElementById("mycanvas");
             context = canvas.getContext("2d");
             graphContainer = document.getElementById("graph-container");
+            drawGraph(data.getData());
         };
 
         function clear() {
@@ -149,12 +158,6 @@
         function getLowestValue(values){
             return Math.min.apply(null, values);
         };
-
-        function updateGraphDimensions(newDimensions){
-        	canvas.height = newDimensions.height;
-        	canvas.width = newDimensions.width;
-        };
-
         /* 
             The functions returned provide an interface 
             for the graph directive.
@@ -162,7 +165,7 @@
         return {
             init: function(graphData) {
                 dataObject = graphData;
-                setCanvas();
+                setCanvas(graphData);
             },
             stop: function(){
                 active = false;
@@ -172,13 +175,10 @@
                 Animate();
             },
             reset: function(){
-                setCanvas();
+                setCanvas(dataObject);
             },
             isActive: function(){
                 return active;
-            },
-            updateGraph: function(newDimensions){
-            	updateGraphDimensions(newDimensions);
             }
         };
     });    
