@@ -1,10 +1,15 @@
 ﻿/*
     Outstanding: 
-    
-    - Make responsive, get window dimensions to set canvas on init
+
     - Provide smooth transition on new data entering the graph
-    - Prettify the dom with CSS and nice buttons.
-    - Expose and position the stats as the graph updates.
+
+    - Expose and position the stats as the graph updates:
+    		- Current value : 
+    		- Last value 	:
+    		- Diff 			:
+    		- Diff %	 	:
+
+    - Prettify the dom with CSS and nice buttons.		
 */
 
 (function(angular) {
@@ -18,37 +23,6 @@
     .controller('graphCtrl', ['$scope', 'graphRenderer', 'graphData', '$window', function($scope, graphRenderer, graphData, $window) {
         graphRenderer.init(graphData);
         $scope.graph = graphRenderer;
-
-        var graphContainer = angular.element(document.querySelector('#graph-container'));
-        $scope.w = angular.element($window);
-        $scope.$watch(
-            function () {
-            	/*
-            	var width = graphContainer[0].offsetWidth;
-            	var height = graphContainer[0].offsetHeight; */
-            	/*
-            	if(width < height){
-            		console.log("width is less than height");
-            		height = (width / 100) * 60;
-            		console.log(height);
-            	}else{
-            		console.log("width more or equal to height");
-            		height = 500;
-            		console.log(height);
-            	};*/
-            	/*
-            	graphRenderer.updateGraph({
-            		'height' : height,
-            		'width' : width
-            	});*/
-            	
-            }
-        );
-        $scope.w.bind('resize', function(){
-            $scope.$apply();
-            $scope.$digest();
-        });
-        
     }]);
     /* 
         graphData acts as a real-time data feed, it returns a predefined array, 
@@ -111,12 +85,7 @@
         function setCanvas(){
             canvas = document.getElementById("mycanvas");
             context = canvas.getContext("2d");
-            /*graphContainer = document.getElementById("graph-container");*/
-            var graphContainer = angular.element(document.querySelector('#graph-container'));
-            canvas.width = graphContainer[0].offsetWidth;
-            canvas.height = graphContainer[0].offsetHeight;
-            //canvas.width = graphContainer.clientWidth;
-            //canvas.height = graphContainer.clientHeight;*/
+            graphContainer = document.getElementById("graph-container");
         };
 
         function clear() {
@@ -140,7 +109,6 @@
             for(var i = 0; i < len; i++){
                 context.lineTo(points.x[i], points.y[i]);
             }
-            //context.strokeStyle="red";
             context.stroke();            
         };
 
