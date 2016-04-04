@@ -1,8 +1,6 @@
 ﻿/*
     Outstanding: 
 
-    - Provide smooth transition on new data entering the graph
-
     - Expose and position the stats as the graph updates:
     		- Current value : 
     		- Last value 	:
@@ -36,12 +34,13 @@
         randomInterval = 0,
         randomValue,
         settings = {
-            poleMin: 60,
-            poleMax: 240,
+            poleMin: 30,
+            poleMax: 120,
             rangeMin: 1,
             rangeMax: 200,
             points:14
-        },data = defaultData();
+        },
+        data = defaultData();
         
         function defaultData(){
         	var randomArray = [];
@@ -87,7 +86,7 @@
     beanApp.factory('graphRenderer', function(){
 
         var requestAnimationFrame = window.requestAnimationFrame,
-            canvas, context, active = false, dataObject, graphContainer;
+            canvas, context, active = false, dataObject, graphContainer, previousData;
 
         function setCanvas(data){
             canvas = document.getElementById("mycanvas");
@@ -103,9 +102,9 @@
         function Animate(){
             if (active) {    
                 requestAnimationFrame(function () {
-                    clear();
+            		clear();
                     drawGraph(dataObject.getData());
-                    Animate();
+                	Animate();
                 });
             }
         };
@@ -182,7 +181,7 @@
             }
         };
     });    
-    
+
     /* Declare the graph directive as Element type */
     beanApp.directive('graph', function() {      
         return {

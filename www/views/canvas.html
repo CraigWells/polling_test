@@ -2,6 +2,9 @@
 	<div id="graph-container">
 		<canvas id="mycanvas" height="280" width="420" style="border:1px solid"></canvas>
 	</div>
+	<div id="stats">
+		
+	</div>
 	<button ng-if="!graph.isActive()" ng-click="graph.start();">Animate</button>
 	<button ng-if="!graph.isActive()" ng-click="graph.reset();">Reset</button>
 	<button ng-if="graph.isActive()" ng-click="graph.stop();">Stop</button>

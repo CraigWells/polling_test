@@ -8,3 +8,9 @@
 	height:auto;
 	max-height: 280px;
 }
+
+#stats{
+	border:1px solid black;
+	min-height: 100px;
+	max-width: 100px;
+}
