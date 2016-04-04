@@ -1,10 +1,6 @@
 ﻿/*
     Outstanding: 
 
-	- Render graph with default values on load
-
-	- Randomise default data set
-
     - Provide smooth transition on new data entering the graph
 
     - Expose and position the stats as the graph updates:
@@ -15,7 +11,6 @@
 
     - Prettify the dom with CSS and nice buttons.		
 */
-
 (function(angular) {
     'use strict';
     var beanApp = angular.module('beanApp', [])
@@ -44,41 +39,45 @@
             poleMin: 60,
             poleMax: 240,
             rangeMin: 1,
-            rangeMax: 200
-        };
-        var data = [20, 30, 50, 46, 36, 20, 21, 35, 67, 89, 90, 26, 78, 46];
-
-        function createRandomArray(){
-
+            rangeMax: 200,
+            points:14
+        },data = defaultData();
+        
+        function defaultData(){
+        	var randomArray = [];
+        	for(var i = 0; i < settings.points; i++){
+        		randomArray.push(
+        			getRandomInt(settings.rangeMin, settings.rangeMax)
+        		);
+        	};
+        	return randomArray;
         };
 
         function getRandomInt(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
         };
 
-        function getData(){
-            if(currentInterval == randomInterval){
-                randomInterval = getRandomInt(settings.poleMin, settings.poleMax);
-                randomValue = getRandomInt(settings.rangeMin, settings.rangeMax);
-                data.push(randomValue);
-                data.shift();
-                currentInterval = 0;
-            }else{
-               currentInterval++; 
-            }
-            return data;
-        };
-
         function init(){
             return {
                 getData : function(){
-                    return getData();
+                    if(currentInterval == randomInterval){
+		                randomInterval = getRandomInt(settings.poleMin, settings.poleMax);
+		                randomValue = getRandomInt(settings.rangeMin, settings.rangeMax);
+		                data.push(randomValue);
+		                data.shift();
+		                currentInterval = 0;
+		            }else{
+		               currentInterval++; 
+		            }
+		            return data;
+                },
+                resetData : function(){
+                	data = defaultData();
                 }
             };
         };       
         return init();
     });
-
     /*
         graphRenderer provides an interface for the graph directive to action 
         graph functions. It handles the logic for manipulating the canvas, 
@@ -120,7 +119,6 @@
             }
             context.stroke();            
         };
-
         /* 
             interpolate the graph data against the canvas dimensions, 
             within the range defined by the lowest and highest values 
@@ -175,6 +173,8 @@
                 Animate();
             },
             reset: function(){
+            	dataObject.resetData();
+            	clear();
                 setCanvas(dataObject);
             },
             isActive: function(){
@@ -182,7 +182,7 @@
             }
         };
     });    
- 
+    
     /* Declare the graph directive as Element type */
     beanApp.directive('graph', function() {      
         return {
