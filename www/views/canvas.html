@@ -2,6 +2,24 @@
 	<div id="graph-container" class="center">
 		<canvas id="mycanvas" height="580" width="620" style="border:1px solid"></canvas>
 		<div id="stats">
+			<div class="table">
+				<div class="row">
+					<div class="cell">Current value</div>
+					<div class="cell">some value</div>
+				</div>	
+				<div class="row">
+					<div class="cell">Previous value</div>
+					<div class="cell">some value</div>
+				</div>
+				<div class="row">
+					<div class="cell">Diff</div>
+					<div class="cell">some value</div>
+				</div>
+				<div class="row">
+					<div class="cell">Diff %</div>
+					<div class="cell">some value</div>
+				</div>
+    		</div>
 			<button ng-if="!graph.isActive()" ng-click="graph.start();">Animate</button>
 			<button ng-if="!graph.isActive()" ng-click="graph.reset();">Reset</button>
 			<button ng-if="graph.isActive()" ng-click="graph.stop();">Stop</button>

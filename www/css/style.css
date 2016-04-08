@@ -18,3 +18,7 @@
 	width:29%;
 	display:inline-block;
 }
+
+.table {display:table;}
+.row {display:table-row; }
+.cell{display:table-cell;}
