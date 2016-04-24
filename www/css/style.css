@@ -1,33 +1,8 @@
-﻿/*#graph-container{
-	height:auto;
-}
-
-#mycanvas{
-	width:70%;
-	height:auto;
-	max-height: 280px;
-}
-
-#stats{
-	border:1px solid black;
-	min-height: 400px;
-	height:100%;
-	min-width: 200px;
-	width:29%;
-	display:inline-block;
-}
-
-.table {display:table;}
-.row {display:table-row; }
-.cell{display:table-cell;} 
-
-
-/* RESET HERE */
+﻿/* RESET HERE */
 
 body{
 	min-width: 100%;
 	min-height:100%;
-    /*background-color: yellow;*/
     padding:0;
     margin:0;
     font-family: 'Raleway', Arial, Helvetica, sans-serif;
@@ -45,8 +20,6 @@ button:hover{
 	/*background-color: red;*/
 	min-height: 8em;
     float:left;
-    /* REMOVE THIS */
-    border:1px solid;
 }
 
 .middle{

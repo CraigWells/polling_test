@@ -1,12 +1,11 @@
 /*
     Outstanding: 
     
-    - Make responsive, get window dimensions to set canvas on init
     - Provide smooth transition on new data entering the graph
-    - Prettify the dom with CSS and nice buttons.
     - Expose and position the stats as the graph updates.
+        - Expose seconds elapsed since last poll
+    - Move watch to resize event service
 */
-
 (function(angular) {
     'use strict';
     var beanApp = angular.module('beanApp', [])
@@ -16,29 +15,8 @@
         graphCtrl, keep it slim! 
     */
     .controller('graphCtrl', ['$scope', 'graphRenderer', 'graphData', '$window', function($scope, graphRenderer, graphData, $window) {
-        graphRenderer.init(graphData);
+        graphRenderer.init(graphData, $scope, $window);
         $scope.graph = graphRenderer;
-
-        var graphContainer = angular.element(document.querySelector('#graph-container'));
-        $scope.w = angular.element($window);
-        $scope.$watch(
-            function () {
-            	
-            	var width = graphContainer[0].offsetWidth;
-            	var height = graphContainer[0].offsetHeight; 
-    
-            	graphRenderer.updateGraph({
-            		'height' : height,
-            		'width' : width
-            	});
-            	
-            }
-        );
-        $scope.w.bind('resize', function(){
-            $scope.$apply();
-            $scope.$digest();
-        });
-        
     }]);
     /* 
         graphData acts as a real-time data feed, it returns a predefined array, 
@@ -53,40 +31,49 @@
         randomInterval = 0,
         randomValue,
         settings = {
-            poleMin: 60,
-            poleMax: 240,
+            poleMin: 30,
+            poleMax: 120,
             rangeMin: 1,
-            rangeMax: 200
+            rangeMax: 200,
+            points:14
+        },
+        data = defaultData();
+        
+        function defaultData(){
+            var randomArray = [];
+            for(var i = 0; i < settings.points; i++){
+                randomArray.push(
+                    getRandomInt(settings.rangeMin, settings.rangeMax)
+                );
+            };
+            return randomArray;
         };
-        var data = [20, 30, 50, 46, 36, 20, 21, 35, 67, 89, 90, 26, 78, 46];
 
         function getRandomInt(min, max) {
             return Math.floor(Math.random() * (max - min + 1)) + min;
         };
 
-        function getData(){
-            if(currentInterval == randomInterval){
-                randomInterval = getRandomInt(settings.poleMin, settings.poleMax);
-                randomValue = getRandomInt(settings.rangeMin, settings.rangeMax);
-                data.push(randomValue);
-                data.shift();
-                currentInterval = 0;
-            }else{
-               currentInterval++; 
-            }
-            return data;
-        };
-
         function init(){
             return {
                 getData : function(){
-                    return getData();
+                    if(currentInterval == randomInterval){
+                        randomInterval = getRandomInt(settings.poleMin, settings.poleMax);
+                        randomValue = getRandomInt(settings.rangeMin, settings.rangeMax);
+                        data.push(randomValue);
+                        data.shift();
+                        currentInterval = 0;
+                    }else{
+                       currentInterval++; 
+                    }
+                    return data;
+                },
+                resetData : function(){
+                    data = defaultData();
                 }
             };
         };       
         return init();
     });
-
     /*
         graphRenderer provides an interface for the graph directive to action 
         graph functions. It handles the logic for manipulating the canvas, 
@@ -96,17 +83,24 @@
     beanApp.factory('graphRenderer', function(){
 
         var requestAnimationFrame = window.requestAnimationFrame,
-            canvas, context, active = false, dataObject, graphContainer;
+            canvas, context, active = false, dataObject, graphContainer, self = this;
 
-        function setCanvas(){
+        function setCanvas(data, $scope, $window){
             canvas = document.getElementById("mycanvas");
             context = canvas.getContext("2d");
-            /*graphContainer = document.getElementById("graph-container");*/
             graphContainer = angular.element(document.querySelector('#graph-container'));
-            //canvas.width = graphContainer[0].offsetWidth;
-            //canvas.height = graphContainer[0].offsetHeight;
-            canvas.width = graphContainer.clientWidth;
-            canvas.height = graphContainer.clientHeight;
+            $scope.w = angular.element($window);
+            $scope.$watch(
+                function () {
+                    canvas.width = graphContainer[0].clientWidth;
+                    canvas.height = graphContainer[0].clientHeight; 
+                    drawGraph(data.getData());
+                }
+            );
+            $scope.w.bind('resize', function(){
+                $scope.$apply();
+                $scope.$digest();
+            });
         };
 
         function clear() {
@@ -133,7 +127,6 @@
             //context.strokeStyle="red";
             context.stroke();            
         };
-
         /* 
             interpolate the graph data against the canvas dimensions, 
             within the range defined by the lowest and highest values 
@@ -171,20 +164,14 @@
         function getLowestValue(values){
             return Math.min.apply(null, values);
         };
-
-        function updateGraphDimensions(newDimensions){
-        	canvas.height = newDimensions.height;
-        	canvas.width = newDimensions.width;
-        };
-
         /* 
             The functions returned provide an interface 
             for the graph directive.
         */
         return {
-            init: function(graphData) {
+            init: function(graphData, $scope, $window) {
                 dataObject = graphData;
-                setCanvas();
+                setCanvas(graphData, $scope, $window);
             },
             stop: function(){
                 active = false;
@@ -194,13 +181,12 @@
                 Animate();
             },
             reset: function(){
-                setCanvas();
+                dataObject.resetData();
+                clear();
+                setCanvas(dataObject);
             },
             isActive: function(){
                 return active;
-            },
-            updateGraph: function(newDimensions){
-            	updateGraphDimensions(newDimensions);
             }
         };
     });    
