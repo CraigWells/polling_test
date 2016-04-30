@@ -1,13 +1,13 @@
 ﻿/*
     Outstanding: 
+    
+    - BUG: on resize height no scroll appears
+    - Provide smooth transition on new data entering the graph
+    - Expose and position the stats as the graph updates.
+        - Expose seconds elapsed since last poll
+    - BUG: appears to be polling on resize
+    - Colour of stroke, button and h1 (blue)?
 
-    - Expose and position the stats as the graph updates:
-    		- Current value : 
-    		- Last value 	:
-    		- Diff 			:
-    		- Diff %	 	:
-
-    - Prettify the dom with CSS and nice buttons.		
 */
 (function(angular) {
     'use strict';
@@ -18,7 +18,7 @@
         graphCtrl, keep it slim! 
     */
     .controller('graphCtrl', ['$scope', 'graphRenderer', 'graphData', '$window', function($scope, graphRenderer, graphData, $window) {
-        graphRenderer.init(graphData);
+        graphRenderer.init(graphData, $scope, $window);
         $scope.graph = graphRenderer;
     }]);
     /* 
@@ -43,13 +43,13 @@
         data = defaultData();
         
         function defaultData(){
-        	var randomArray = [];
-        	for(var i = 0; i < settings.points; i++){
-        		randomArray.push(
-        			getRandomInt(settings.rangeMin, settings.rangeMax)
-        		);
-        	};
-        	return randomArray;
+            var randomArray = [];
+            for(var i = 0; i < settings.points; i++){
+                randomArray.push(
+                    getRandomInt(settings.rangeMin, settings.rangeMax)
+                );
+            };
+            return randomArray;
         };
 
         function getRandomInt(min, max) {
@@ -60,18 +60,18 @@
             return {
                 getData : function(){
                     if(currentInterval == randomInterval){
-		                randomInterval = getRandomInt(settings.poleMin, settings.poleMax);
-		                randomValue = getRandomInt(settings.rangeMin, settings.rangeMax);
-		                data.push(randomValue);
-		                data.shift();
-		                currentInterval = 0;
-		            }else{
-		               currentInterval++; 
-		            }
-		            return data;
+                        randomInterval = getRandomInt(settings.poleMin, settings.poleMax);
+                        randomValue = getRandomInt(settings.rangeMin, settings.rangeMax);
+                        data.push(randomValue);
+                        data.shift();
+                        currentInterval = 0;
+                    }else{
+                       currentInterval++; 
+                    }
+                    return data;
                 },
                 resetData : function(){
-                	data = defaultData();
+                    data = defaultData();
                 }
             };
         };       
@@ -86,13 +86,24 @@
     beanApp.factory('graphRenderer', function(){
 
         var requestAnimationFrame = window.requestAnimationFrame,
-            canvas, context, active = false, dataObject, graphContainer, previousData;
+            canvas, context, active = false, dataObject, graphContainer, self = this;
 
-        function setCanvas(data){
+        function setCanvas(data, $scope, $window){
             canvas = document.getElementById("mycanvas");
             context = canvas.getContext("2d");
-            graphContainer = document.getElementById("graph-container");
-            drawGraph(data.getData());
+            graphContainer = angular.element(document.querySelector('#graph-container'));
+            $scope.w = angular.element($window);
+            $scope.$watch(
+                function () {
+                    canvas.width = graphContainer[0].clientWidth;
+                    canvas.height = graphContainer[0].clientHeight; 
+                    drawGraph(data.getData());
+                }
+            );
+            $scope.w.bind('resize', function(){
+                $scope.$apply();
+                $scope.$digest();
+            });
         };
 
         function clear() {
@@ -102,9 +113,9 @@
         function Animate(){
             if (active) {    
                 requestAnimationFrame(function () {
-            		clear();
+                    clear();
                     drawGraph(dataObject.getData());
-                	Animate();
+                    Animate();
                 });
             }
         };
@@ -116,6 +127,7 @@
             for(var i = 0; i < len; i++){
                 context.lineTo(points.x[i], points.y[i]);
             }
+            //context.strokeStyle="red";
             context.stroke();            
         };
         /* 
@@ -160,9 +172,9 @@
             for the graph directive.
         */
         return {
-            init: function(graphData) {
+            init: function(graphData, $scope, $window) {
                 dataObject = graphData;
-                setCanvas(graphData);
+                setCanvas(graphData, $scope, $window);
             },
             stop: function(){
                 active = false;
@@ -172,8 +184,8 @@
                 Animate();
             },
             reset: function(){
-            	dataObject.resetData();
-            	clear();
+                dataObject.resetData();
+                clear();
                 setCanvas(dataObject);
             },
             isActive: function(){
@@ -181,7 +193,7 @@
             }
         };
     });    
-
+ 
     /* Declare the graph directive as Element type */
     beanApp.directive('graph', function() {      
         return {
