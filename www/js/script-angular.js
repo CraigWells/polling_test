@@ -1,11 +1,9 @@
 ﻿/*
     Outstanding: 
     
-    - BUG: on resize height no scroll appears
     - Provide smooth transition on new data entering the graph
     - Expose and position the stats as the graph updates.
         - Expose seconds elapsed since last poll
-    - BUG: appears to be polling on resize
     - Colour of stroke, button and h1 (blue)?
 
 */
@@ -33,6 +31,7 @@
         var currentInterval = 0,
         randomInterval = 0,
         randomValue,
+        existingData,
         settings = {
             poleMin: 30,
             poleMax: 120,
@@ -56,15 +55,20 @@
             return Math.floor(Math.random() * (max - min + 1)) + min;
         };
 
+        function returnData(){
+            randomInterval = getRandomInt(settings.poleMin, settings.poleMax);
+            randomValue = getRandomInt(settings.rangeMin, settings.rangeMax);
+            data.push(randomValue);
+            data.shift();
+            currentInterval = 0;
+            existingData = data;
+        };
+
         function init(){
             return {
-                getData : function(){
-                    if(currentInterval == randomInterval){
-                        randomInterval = getRandomInt(settings.poleMin, settings.poleMax);
-                        randomValue = getRandomInt(settings.rangeMin, settings.rangeMax);
-                        data.push(randomValue);
-                        data.shift();
-                        currentInterval = 0;
+                getData : function(reset){
+                    if(currentInterval == randomInterval || reset){
+                        returnData();
                     }else{
                        currentInterval++; 
                     }
@@ -72,6 +76,9 @@
                 },
                 resetData : function(){
                     data = defaultData();
+                },
+                getExistingData : function(){
+                    return existingData;
                 }
             };
         };       
@@ -86,9 +93,11 @@
     beanApp.factory('graphRenderer', function(){
 
         var requestAnimationFrame = window.requestAnimationFrame,
-            canvas, context, active = false, dataObject, graphContainer, self = this;
+            canvas, context, active = false, dataObject, graphContainer, scope, Window, resetValue = false;
 
         function setCanvas(data, $scope, $window){
+            scope = $scope;
+            Window = $window;
             canvas = document.getElementById("mycanvas");
             context = canvas.getContext("2d");
             graphContainer = angular.element(document.querySelector('#graph-container'));
@@ -97,7 +106,7 @@
                 function () {
                     canvas.width = graphContainer[0].clientWidth;
                     canvas.height = graphContainer[0].clientHeight; 
-                    drawGraph(data.getData());
+                    drawGraph(dataObject);
                 }
             );
             $scope.w.bind('resize', function(){
@@ -114,21 +123,29 @@
             if (active) {    
                 requestAnimationFrame(function () {
                     clear();
-                    drawGraph(dataObject.getData());
+                    drawGraph(dataObject);
                     Animate();
                 });
             }
         };
 
         function drawGraph(data){
-            var points = getPoints(data);
+            var points;
+            if(resetValue == true){
+                points = getPoints(data.getData(resetValue));
+            }else if(data.getExistingData() && (active == false)){
+                points = getPoints(data.getExistingData());
+            }else{
+                points = getPoints(data.getData());
+            }
             var len = points.x.length;
             context.beginPath();
             for(var i = 0; i < len; i++){
                 context.lineTo(points.x[i], points.y[i]);
             }
-            //context.strokeStyle="red";
-            context.stroke();            
+            context.strokeStyle="red";
+            context.stroke(); 
+            resetValue = false;         
         };
         /* 
             interpolate the graph data against the canvas dimensions, 
@@ -186,7 +203,8 @@
             reset: function(){
                 dataObject.resetData();
                 clear();
-                setCanvas(dataObject);
+                resetValue = true;
+                setCanvas(dataObject, scope, Window);
             },
             isActive: function(){
                 return active;
