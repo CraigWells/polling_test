@@ -5,7 +5,6 @@
         - Expose seconds elapsed since last poll
 
     - Colour of stroke, hues, button and h1 (blue)?
-    - Refactor
 
 */
 (function(angular) {
@@ -33,9 +32,10 @@
         randomInterval = 0,
         randomValue,
         existingData,
+        timeElapsed = 0,
         settings = {
             poleMin: 30,
-            poleMax: 120,
+            poleMax: 320,
             rangeMin: 1,
             rangeMax: 200,
             points:14
@@ -63,6 +63,7 @@
             data.shift();
             currentInterval = 0;
             existingData = data;
+            timeElapsed = 0;
         };
 
         function init(){
@@ -80,6 +81,9 @@
                 },
                 getExistingData : function(){
                     return existingData;
+                },
+                getTimeElapsed : function(){
+                    return timeElapsed;
                 }
             };
         };       
@@ -122,13 +126,16 @@
         };
 
         function Animate(){
-            if (active) {    
+            var startTime = Date.now(); 
+            if (active) {  
                 requestAnimationFrame(function(){
                     clear();
                     drawGraph();
                     Animate();
                 });
             }
+            var elapsed = Date.now() - startTime;
+            console.log((elapsed / 100));
         };
 
         function drawGraph(){
@@ -193,17 +200,18 @@
             var currentValue = existingData[existingData.length -1];
             var previousValue = existingData[existingData.length -2];
             var diffValue = difference(currentValue, previousValue);
+            var elapsedValue = dataObject.getTimeElapsed();
             var cElement = angular.element(document.querySelector('#current-value'));
             var pElement = angular.element(document.querySelector('#previous-value'));
             var dElement = angular.element(document.querySelector('#diff-value'));
+            var tElement = angular.element(document.querySelector('#time-elapsed'));
             cElement.text(currentValue); 
             pElement.text(previousValue); 
             dElement.text(diffValue);
+            tElement.text(elapsedValue);
         };
 
         function difference(a, b){
-            console.log(a);
-            console.log(b);
             return (a > b)? a-b : b-a;
         }
         /* 
