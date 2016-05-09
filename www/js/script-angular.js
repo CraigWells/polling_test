@@ -33,6 +33,7 @@
         randomValue,
         existingData,
         timeElapsed = 0,
+        startTime,
         settings = {
             poleMin: 30,
             poleMax: 320,
@@ -64,6 +65,7 @@
             currentInterval = 0;
             existingData = data;
             timeElapsed = 0;
+            startTime - Date.now();
         };
 
         function init(){
@@ -83,6 +85,7 @@
                     return existingData;
                 },
                 getTimeElapsed : function(){
+                    timeElapsed = Date.now() - startTime;
                     return timeElapsed;
                 }
             };
@@ -99,7 +102,7 @@
 
         var requestAnimationFrame = window.requestAnimationFrame,
             canvas, context, active = false, dataObject, graphContainer, 
-            scope, Window, resetValue = false;
+            scope, Window, resetValue = false, timeElapsed;
 
         function setCanvas($scope, $window){
             scope = $scope;
@@ -126,7 +129,6 @@
         };
 
         function Animate(){
-            var startTime = Date.now(); 
             if (active) {  
                 requestAnimationFrame(function(){
                     clear();
@@ -134,8 +136,6 @@
                     Animate();
                 });
             }
-            var elapsed = Date.now() - startTime;
-            console.log((elapsed / 100));
         };
 
         function drawGraph(){
@@ -238,6 +238,9 @@
             },
             isActive: function(){
                 return active;
+            },
+            getTimeElapsed: function(){
+                return timeElapsed;
             }
         };
     });    
