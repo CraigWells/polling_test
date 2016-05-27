@@ -34,6 +34,7 @@
         existingData,
         timeElapsed = 0,
         startTime,
+        poled = false,
         settings = {
             poleMin: 30,
             poleMax: 320,
@@ -72,9 +73,11 @@
             return {
                 getData : function(reset){
                     if(currentInterval == randomInterval || reset){
+                        poled = true;
                         returnData();
                     }else{
                        currentInterval++; 
+                       poled = false;
                     }
                     return data;
                 },
@@ -87,6 +90,9 @@
                 getTimeElapsed : function(){
                     timeElapsed = Date.now() - startTime;
                     return timeElapsed;
+                },
+                getPoled : function(){
+                    return poled;
                 }
             };
         };       
@@ -102,7 +108,7 @@
 
         var requestAnimationFrame = window.requestAnimationFrame,
             canvas, context, active = false, dataObject, graphContainer, 
-            scope, Window, resetValue = false, timeElapsed;
+            scope, Window, resetValue = false, timeElapsed = 0 , lastTime = 0, runningTime = 0, oldPoints;
 
         function setCanvas($scope, $window){
             scope = $scope;
@@ -128,34 +134,44 @@
             context.clearRect(0, 0, canvas.width, canvas.height);
         };
 
-        function Animate(){
+        function Animate(elapsed){
+            runningTime = elapsed;
             if (active) {  
-                requestAnimationFrame(function(){
+                requestAnimationFrame(function(elapsed){
                     clear();
-                    drawGraph();
-                    Animate();
+                    drawGraph(elapsed);
+                    Animate(elapsed);
                 });
             }
         };
 
-        function drawGraph(){
+        function drawGraph(elapsed){
             var points;
             if(resetValue == true){
                 points = getPoints(dataObject.getData(resetValue));
+                Window.cancelAnimationFrame(elapsed);
+                timeElapsed = 0; elapsed ? lastTime = elapsed : lastTime = 0;
             }else if(dataObject.getExistingData() && (active == false)){
                 points = getPoints(dataObject.getExistingData());
+                timeElapsed = 0; elapsed ? lastTime = elapsed : lastTime = 0;
             }else{
                 points = getPoints(dataObject.getData());
+                if(dataObject.getPoled() === true){
+                    timeElapsed = 0; lastTime = elapsed;
+                }else{
+                    timeElapsed = round_number(((elapsed - lastTime) / 1000), 2);
+                }
             }
             var len = points.x.length;
             context.beginPath();
             for(var i = 0; i < len; i++){
                 context.lineTo(points.x[i], points.y[i]);
             }
+            oldPoints = points;
             context.strokeStyle="red";
             context.stroke(); 
             resetValue = false;  
-            setStats();   
+            setStats(elapsed);   
         };
         /* 
             interpolate the graph data against the canvas dimensions, 
@@ -195,12 +211,16 @@
             return Math.min.apply(null, values);
         };
 
-        function setStats(){
-            var value, existingData = dataObject.getExistingData();
+        function round_number(num, dec) {
+            return Math.round(num * Math.pow(10, dec)) / Math.pow(10, dec);
+        };
+
+        function setStats(elapsed){
+            elapsed = round_number((elapsed / 1000), 2);
+            var existingData = dataObject.getExistingData();
             var currentValue = existingData[existingData.length -1];
             var previousValue = existingData[existingData.length -2];
             var diffValue = difference(currentValue, previousValue);
-            var elapsedValue = dataObject.getTimeElapsed();
             var cElement = angular.element(document.querySelector('#current-value'));
             var pElement = angular.element(document.querySelector('#previous-value'));
             var dElement = angular.element(document.querySelector('#diff-value'));
@@ -208,7 +228,11 @@
             cElement.text(currentValue); 
             pElement.text(previousValue); 
             dElement.text(diffValue);
-            tElement.text(elapsedValue);
+            tElement.text(timeElapsed);
+        };
+
+        function getTimeElapsed(){
+
         };
 
         function difference(a, b){
@@ -225,6 +249,7 @@
             },
             stop: function(){
                 active = false;
+                lastTime = runningTime;
             },
             start: function(){
                 active = true;
