@@ -2,9 +2,13 @@
     Outstanding: 
 
     - Expose and position the stats as the graph updates.
-        - Expose seconds elapsed since last poll
+        - Expose 'previous duration'
 
     - Colour of stroke, hues, button and h1 (blue)?
+
+    - Refactor 
+
+    - inc with portfolio
 
 */
 (function(angular) {
